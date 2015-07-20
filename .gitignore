@@ -75,3 +75,8 @@ target/
 
 # sftp configuration file
 sftp-config.json
+
+# Big Test Data
+mytardisbf/tests/data/D3D.dv
+mytardisbf/tests/data/IMCD3 170615.lif
+mytardisbf/tests/data/her.tif

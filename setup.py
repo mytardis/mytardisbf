@@ -20,6 +20,8 @@ in MyTardis""",
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
+          'numpy>=1.9',
+          'scipy>=0.15',
           'javabridge>=1.0',
           'python-bioformats>=1.0'
       ],

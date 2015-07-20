@@ -1,7 +1,11 @@
 import logging
 from django.apps import AppConfig
+from tardis.tardis_portal.models import Schema
 
 logger = logging.getLogger(__name__)
+
+
+BFSCHEMA2 = "http://tardis.edu.au/schemas/bioformats/2"
 
 
 class MyTardisBFConfig(AppConfig):
@@ -9,11 +13,7 @@ class MyTardisBFConfig(AppConfig):
     verbose_name = "MyTardis Bioformats"
 
     def ready(self):
-        try:
-            import javabridge
-            import bioformats
-        except ImportError as ie:
-            logger.debug(ie)
+        if not Schema.objects.filter(namespace__exact=BFSCHEMA2):
+            from django.core.management import call_command
+            call_command('loaddata', 'bioformats')
 
-        import ipdb; ipdb.set_trace()
-        javabridge.start_vm(class_path=bioformats.JARS, max_heap_size='4G')
