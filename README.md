@@ -1,6 +1,6 @@
 # MyTardis Bioformats Preview Image and Metadata Filter
 
-MyTardisBF is an App for the [MyTardis](https://github.com/mytardis/mytardis) data management platform that provides tools for extracting preview images and metadata from common microscopy formats. The App uses the [Bioformats](http://www.openmicroscopy.org/site/products/bio-formats) library via [python-bioformats](https://github.com/CellProfiler/python-bioformats) and supports the extraction of preview images and limited metadata information for all images [supported by Bioformats](http://www.openmicroscopy.org/site/support/bio-formats5.1/supported-formats.html).
+MyTardisBF is an App for the [MyTardis](https://github.com/mytardis/mytardis) data management platform that provides tools for extracting preview images and metadata from common microscopy formats. The App uses the [Bioformats](http://www.openmicroscopy.org/site/products/bio-formats) library via [python-bioformats](https://github.com/CellProfiler/python-bioformats) and supports the extraction of preview images and limited metadata information for all images [supported by Bioformats](http://www.openmicroscopy.org/site/support/bio-formats5.1/supported-formats.html). Additionally, the filter supports extraction of metadata and preview images for each series in multi-series image formats like Leica LIF files.
 
 ![Screenshot](https://dl.dropboxusercontent.com/u/6648609/MyTardisBF.png)
 
