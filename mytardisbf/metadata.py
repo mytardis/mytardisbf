@@ -15,6 +15,7 @@ CHANNEL = '{http://www.openmicroscopy.org/Schemas/OME/2013-06}Channel'
 
 def get_original_metadata(omexml):
     """ Get the original metadata from structured annotations in OME XML.
+    Note: this is currently not used at this stage.
 
     Parameters
     ----------
@@ -39,13 +40,14 @@ def get_original_metadata(omexml):
 
 
 def get_meta(input_file_path, output_path, **kwargs):
-    """ Extract specific metadata typically used in bio-image analysis.
-    Note: this is currently not used at this stage.
+    """ Extract specific metadata typically used in bio-image analysis. Also
+    outputs a preview image to the output directory.
 
     Parameters
     ----------
     input_file_path: str
         Input file path
+    output_path: str
 
     Returns
     -------
@@ -99,6 +101,7 @@ def get_meta(input_file_path, output_path, **kwargs):
 def get_ome_metadata(input_file_path, output_path, **kwargs):
     """ Extracts metadata from an input file and save it to a file at
     the specified output_path.
+    Note: this is currently not used at this stage.
 
     Parameters
     ----------
