@@ -37,6 +37,13 @@ POST_SAVE_FILTERS = [
 ]
 ```
 
+The Bioformats filter can be run outside of the default celery queue. To specify a different celery queue, add the following to MyTardis's `settings.py`:
+
+```
+BIOFORMATS_QUEUE = "nameofqueue"
+```
+where `nameofqueue` is the name of the celery queue in which you want to run the filter.
+
 # Developers
 ## Get the source
 ```
