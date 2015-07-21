@@ -36,3 +36,32 @@ POST_SAVE_FILTERS = [
    ["BioformatsMetadata", "http://tardis.edu.au/schemas/bioformats/2"]),
 ]
 ```
+
+# Developers
+## Get the source
+```
+git clone https://github.com/keithschulze/mytardisbf.git
+cd mytardisbf
+```
+
+To test in with MyTardis:
+```
+# Activate your MyTardis virtualenv
+pip install -e .
+```
+
+Configuration of the App and Filters in MyTardis is the same as decribed above for normal Installation.
+
+## Testing
+Note that many of the original unittests are skipped because the test image files were large and therefore not included in this repository. Nosetests is required: `pip install nose`
+
+In order to run unittests, you will need to enable the javabridge nosetest plugin.
+
+Add the following to `setup.cfg`:
+
+```
+[nosetests]
+with-javabridge = True
+classpath = /path/to/.virtualenvs/mytardis/lib/python2.7/site-packages/javabridge/jars/rhino-1.7R4.jar:/path/to/.virtualenvs/mytardis/lib/python2.7/site-packages/javabridge/jars/runnablequeue.jar:/path/to/.virtualenvs/mytardis/lib/python2.7/site-packages/javabridge/jars/cpython.jar:/path/to/.virtualenvs/mytardis/lib/python2.7/site-packages/bioformats/jars/loci_tools.jar
+```
+Note: you will need to adjust the `/path/to/.virtualenvs/mytardis` to the location of your mytardis python environment or a python environment that has the dependencies for this app.
