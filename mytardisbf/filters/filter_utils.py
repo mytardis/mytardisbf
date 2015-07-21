@@ -10,7 +10,7 @@ from tardis.tardis_portal.models import ParameterName, DatafileParameter
 from tardis.tardis_portal.models import DataFileObject
 
 logger = logging.getLogger(__name__)
-started = False
+mtbf_jvm_started = False
 
 
 def delete_old_parameterset(ps):
@@ -101,12 +101,12 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
     """
     # import ipdb; ipdb.set_trace()
     # Need to start a JVM in each thread
-    global started
-    if not started:
+    global mtbf_jvm_started
+    if not mtbf_jvm_started:
         logger.debug("Starting a new JVM")
         javabridge.start_vm(class_path=bioformats.JARS, max_heap_size='4G',
                             run_headless=True)
-        started = True
+        mtbf_jvm_started = True
 
     try:
         javabridge.attach()
@@ -190,12 +190,12 @@ def process_meta(func, df, schema_name, overwrite=False, **kwargs):
     None
     """
     # Need to start a JVM in each thread
-    global started
-    if not started:
+    global mtbf_jvm_started
+    if not mtbf_jvm_started:
         logger.debug("Starting a new JVM")
         javabridge.start_vm(class_path=bioformats.JARS, max_heap_size='4G',
                             run_headless=True)
-        started = True
+        mtbf_jvm_started = True
     try:
         javabridge.attach()
         log4j.basic_config()
