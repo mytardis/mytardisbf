@@ -7,7 +7,7 @@ MyTardisBF is an App for the [MyTardis](https://github.com/mytardis/mytardis) da
 ## Installation
 Install MyTardisBF app into you MyTardis python environment:
 
-`pip install -e git+https://github.com/keithschulze/mytardisbf.git`
+`pip install -e git+https://github.com/keithschulze/mytardisbf.git@runinqueue#egg=mytardisbf`
 
 If you using a virtualenv, remember to activate it first.
 
