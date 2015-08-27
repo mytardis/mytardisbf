@@ -13,6 +13,24 @@ logger = logging.getLogger(__name__)
 mtbf_jvm_started = False
 
 
+def check_and_start_jvm():
+    """ Checks global to see whether a JVM is running and if not starts
+    a new one. If JVM starts successfully the global variable mtbf_jvm_started
+    is updated to ensure that another JVM is not started.
+    """
+    global mtbf_jvm_started
+    if not mtbf_jvm_started:
+        logger.debug("Starting a new JVM")
+        try:
+            mh_size = getattr(settings, 'MTBF_MAX_HEAP_SIZE', '4G')
+            javabridge.start_vm(class_path=bioformats.JARS,
+                                max_heap_size=mh_size,
+                                run_headless=True)
+            mtbf_jvm_started = True
+        except javabridge.JVMNotFoundError, e:
+            logger.debug(e)
+
+
 def delete_old_parameterset(ps):
     """ Remove a ParameterSet and all associated DatafileParameters
 
@@ -100,13 +118,8 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
     None
     """
     # import ipdb; ipdb.set_trace()
-    # Need to start a JVM in each thread
-    global mtbf_jvm_started
-    if not mtbf_jvm_started:
-        logger.debug("Starting a new JVM")
-        javabridge.start_vm(class_path=bioformats.JARS, max_heap_size='4G',
-                            run_headless=True)
-        mtbf_jvm_started = True
+    # Need to start a JVM in each celery worker
+    check_and_start_jvm()
 
     try:
         javabridge.attach()
@@ -189,13 +202,9 @@ def process_meta(func, df, schema_name, overwrite=False, **kwargs):
     -------
     None
     """
-    # Need to start a JVM in each thread
-    global mtbf_jvm_started
-    if not mtbf_jvm_started:
-        logger.debug("Starting a new JVM")
-        javabridge.start_vm(class_path=bioformats.JARS, max_heap_size='4G',
-                            run_headless=True)
-        mtbf_jvm_started = True
+    # Need to start a JVM in each celery worker
+    check_and_start_jvm()
+
     try:
         javabridge.attach()
         log4j.basic_config()
