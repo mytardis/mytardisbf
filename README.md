@@ -7,7 +7,7 @@ MyTardisBF is an App for the [MyTardis](https://github.com/mytardis/mytardis) da
 ## Installation
 Install MyTardisBF app into you MyTardis python environment:
 
-`pip install -e git+https://github.com/keithschulze/mytardisbf.git`
+`pip install -e git+https://github.com/keithschulze/mytardisbf.git#egg=mytardisbf`
 
 If you using a virtualenv, remember to activate it first.
 
@@ -36,6 +36,13 @@ POST_SAVE_FILTERS = [
    ["BioformatsMetadata", "http://tardis.edu.au/schemas/bioformats/2"]),
 ]
 ```
+
+The Bioformats filter can be run outside of the default celery queue. To specify a different celery queue, add the following to MyTardis's `settings.py`:
+
+```
+BIOFORMATS_QUEUE = "nameofqueue"
+```
+where `nameofqueue` is the name of the celery queue in which you want to run the filter.
 
 # Developers
 ## Get the source
