@@ -44,6 +44,12 @@ BIOFORMATS_QUEUE = "nameofqueue"
 ```
 where `nameofqueue` is the name of the celery queue in which you want to run the filter.
 
+The maximum heap space use by the JVM in each celery worker can also be configured:
+
+```
+MTBF_MAX_HEAP_SIZE = "1G"
+```
+
 # Developers
 ## Get the source
 ```
