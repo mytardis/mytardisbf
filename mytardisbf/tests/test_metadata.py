@@ -14,6 +14,7 @@ class MetadataTest(unittest.TestCase):
         self.dv_zoom = "./mytardisbf/tests/data/D3D_zoom.png"
         self.dv_meta = "./mytardisbf/tests/data/D3D.json"
 
+    @unittest.skip("requires large dataset not generally available")
     def test_get_meta(self):
         td = tempfile.gettempdir()
         meta = metadata.get_meta(self.dv, td)[0]
@@ -21,6 +22,7 @@ class MetadataTest(unittest.TestCase):
         meta_rd = json.loads(meta_rd)
         self.assertEqual(meta, meta_rd)
 
+    @unittest.skip("requires large dataset not generally available")
     def test_get_meta_preview(self):
         td = tempfile.gettempdir()
         meta = metadata.get_meta(self.dv, td)[0]
