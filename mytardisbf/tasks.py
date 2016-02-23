@@ -2,6 +2,7 @@ import logging
 import os
 import bioformats
 import javabridge
+import urlparse
 from bioformats import log4j
 from django.conf import settings
 from django.core.cache import caches
@@ -13,12 +14,13 @@ from tardis.tardis_portal.models import DataFileObject
 logger = logging.getLogger(__name__)
 
 LOCK_EXPIRE = 60 * 5  # Lock expires in 5 minutes
-mtbf_jvm_started = False # Global to check whether JVM started on a thread
+mtbf_jvm_started = False  # Global to check whether JVM started on a thread
 
 
 def generate_lockid(datafile_id):
     """Return a lock id for a datafile"""
     return "mtbf-lock-%d" % datafile_id
+
 
 def acquire_datafile_lock(datafile_id, cache_name='celery-locks'):
     """ Lock a datafile to prevent filters from running mutliple times on
@@ -124,7 +126,7 @@ def save_parameters(schema, param_set, params):
             savep(paramk, paramv)
 
 
-@task(name="mytardisbf.filters.tardis_util.process_meta_file_output",
+@task(name="mytardisbf.process_meta_file_output",
       ignore_result=True)
 def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
     """Extract metadata from a Datafile using a provided function and save the
@@ -186,7 +188,7 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
             input_file_path = dfo.get_full_path()
 
             output_rel_path = os.path.join(
-                        os.path.dirname(input_file_path),
+                        os.path.dirname(urlparse.urlparse(dfo.uri).path),
                         str(df.id))
             output_path = os.path.join(
                 settings.METADATA_STORE_PATH, output_rel_path)
@@ -213,7 +215,7 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
             javabridge.detach()
 
 
-@task(name="mytardisbf.filters.tardis_util.process_meta",
+@task(name="mytardisbf.process_meta",
       ignore_result=True)
 def process_meta(func, df, schema_name, overwrite=False, **kwargs):
     """Extract metadata from a Datafile using a provided function and save the
