@@ -1,5 +1,4 @@
-from mytardisbf import metadata
-from mytardisbf.filters import filter_utils
+from mytardisbf import metadata, tasks
 from django.conf import settings
 
 
@@ -32,7 +31,7 @@ class MetadataFilter(object):
         """
         instance = kwargs.get('instance')
         bfqueue = getattr(settings, 'BIOFORMATS_QUEUE', 'celery')
-        filter_utils.process_meta_file_output\
+        tasks.process_meta_file_output\
             .apply_async(args=[metadata.get_meta, instance, self.schema,
                                False], queue=bfqueue)
 
