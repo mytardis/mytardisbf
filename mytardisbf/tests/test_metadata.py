@@ -29,3 +29,8 @@ class MetadataTest(unittest.TestCase):
         img = imread(meta['previewImage'])
         img_rd = imread(self.dv_zoom)
         np.testing.assert_array_equal(img, img_rd)
+
+    def test_get_non_ome_xml(self):
+        td = tempfile.gettempdir()
+        out = metadata.get_meta("./mytardisbf/tests/data/a.xml", td)
+        self.assertEqual(out, None)

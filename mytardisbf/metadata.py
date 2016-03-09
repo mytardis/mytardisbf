@@ -1,6 +1,7 @@
 import logging
 import os
 import bioformats
+import javabridge
 from mytardisbf import previewimage
 from xml.etree import ElementTree as et
 
@@ -63,7 +64,13 @@ def get_meta(input_file_path, output_path, **kwargs):
         logger.debug("Unsupported format: %s.%s" % (input_fname, ext))
         return
 
-    omexml = bioformats.get_omexml_metadata(input_file_path).encode('utf-8')
+    try:
+        omexml = bioformats.get_omexml_metadata(input_file_path).encode('utf-8')
+    except javabridge.jutil.JavaException:
+        logger.error("Unable to read OME Metadata from: %s%s"
+                     % (input_fname, ext))
+        return
+
     meta_xml = et.fromstring(omexml)
     meta = list()
     for i, img_meta in enumerate(meta_xml.iter(IMAGE)):
