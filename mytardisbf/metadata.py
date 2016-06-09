@@ -8,12 +8,6 @@ from xml.etree import ElementTree as et
 logger = logging.getLogger(__name__)
 
 
-# OME XML Namespace lookups
-IMAGE = '{http://www.openmicroscopy.org/Schemas/OME/2013-06}Image'
-PIXEL = '{http://www.openmicroscopy.org/Schemas/OME/2013-06}Pixels'
-CHANNEL = '{http://www.openmicroscopy.org/Schemas/OME/2013-06}Channel'
-
-
 def get_original_metadata(omexml):
     """ Get the original metadata from structured annotations in OME XML.
     Note: this is currently not used at this stage.
@@ -38,6 +32,24 @@ def get_original_metadata(omexml):
     return dict([(elem.find('{http://www.openmicroscopy.org/Schemas/SA/2013-06}Key').text,
                  elem.find('{http://www.openmicroscopy.org/Schemas/SA/2013-06}Value').text)
                  for elem in meta_xml.findall(sa)])
+
+
+def get_namespaces(meta_xml_root):
+    """Extract OME and StructuredAnnotation namespaces from OME-XML file
+
+    Parameters
+    ----------
+    meta_xml_root: Element
+                   Root ElementTree element
+
+    Returns
+    -------
+    ns : dict
+         Dictionary with the OME and SA namespaces
+    """
+    ome_ns = meta_xml_root.tag[1:].split("}", 1)[0]
+    sa_ns = ome_ns.replace("OME", "SA")
+    return {'ome': ome_ns, 'sa': sa_ns}
 
 
 def get_meta(input_file_path, output_path, **kwargs):
@@ -65,15 +77,17 @@ def get_meta(input_file_path, output_path, **kwargs):
         return
 
     try:
-        omexml = bioformats.get_omexml_metadata(input_file_path).encode('utf-8')
+        omexml = bioformats.get_omexml_metadata(input_file_path)\
+                    .encode('utf-8')
     except javabridge.jutil.JavaException:
         logger.error("Unable to read OME Metadata from: %s%s"
                      % (input_fname, ext))
         return
 
     meta_xml = et.fromstring(omexml)
+    ome_ns = get_namespaces(meta_xml)
     meta = list()
-    for i, img_meta in enumerate(meta_xml.iter(IMAGE)):
+    for i, img_meta in enumerate(meta_xml.findall('ome:Image', ome_ns)):
         smeta = dict()
         output_file_path = os.path.join(output_path,
                                         input_fname+"_s%s.png" % i)
@@ -88,11 +102,12 @@ def get_meta(input_file_path, output_path, **kwargs):
         smeta['id'] = img_meta.attrib['ID']
         smeta['name'] = img_meta.attrib['Name']
         smeta['previewImage'] = output_file_path
-        for pix_meta in img_meta.iter(PIXEL):
+        for pix_meta in img_meta.findall('ome:Pixels', ome_ns):
             for k, v in pix_meta.attrib.iteritems():
                 if k.lower() not in pix_exc:
                     smeta[k.lower()] = v
-            for c, channel_meta in enumerate(pix_meta.iter(CHANNEL)):
+
+            for c, channel_meta in enumerate(pix_meta.findall('ome:Channel', ome_ns)):
                 for kc, vc in channel_meta.attrib.iteritems():
                     if kc.lower() not in channel_exc:
                         if kc.lower() not in smeta:

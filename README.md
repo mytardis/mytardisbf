@@ -5,9 +5,13 @@ MyTardisBF is an App for the [MyTardis](https://github.com/mytardis/mytardis) da
 ![Screenshot](https://dl.dropboxusercontent.com/u/6648609/MyTardisBF.png)
 
 ## Installation
-Install MyTardisBF app into you MyTardis python environment:
+These instructions assume that you have installed and configured MyTardis. If you haven't please follow the instructions in the latest [MyTardis documentation](https://mytardis.readthedocs.io/en/develop/admin/install.html).
+Install `numpy` and `mytardisbf` app into your MyTardis python environment:
 
-`pip install -e git+https://github.com/keithschulze/mytardisbf.git#egg=mytardisbf`
+```
+pip install -U numpy
+pip install -e git+https://github.com/keithschulze/mytardisbf.git#egg=mytardisbf
+```
 
 If you using a virtualenv, remember to activate it first.
 
