@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.2.0'
+version = '0.1.1'
 
 setup(name='mytardisbf',
       version=version,
@@ -23,7 +23,7 @@ in MyTardis""",
           'numpy>=1.9',
           'scipy>=0.15',
           'javabridge>=1.0',
-          'python-bioformats>=1.0'
+          'python-bioformats>=1.0,<1.0.7'
       ],
       entry_points="""
       # -*- Entry points: -*-
