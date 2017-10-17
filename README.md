@@ -89,6 +89,6 @@ Add the following to `setup.cfg`:
 ```
 [nosetests]
 with-javabridge = True
-classpath = /path/to/.virtualenvs/mytardis/lib/python2.7/site-packages/javabridge/jars/rhino-1.7R4.jar:/path/to/.virtualenvs/mytardis/lib/python2.7/site-packages/javabridge/jars/runnablequeue.jar:/path/to/.virtualenvs/mytardis/lib/python2.7/site-packages/javabridge/jars/cpython.jar:/path/to/.virtualenvs/mytardis/lib/python2.7/site-packages/bioformats/jars/loci_tools.jar
+classpath = /path/to/loci_tools.jar
 ```
-Note: you will need to adjust the `/path/to/.virtualenvs/mytardis` to the location of your mytardis python environment or a python environment that has the dependencies for this app.
+Note: `loci_tools.jar` can be downloade from the [python-bioformats](https://github.com/CellProfiler/python-bioformats/blob/master/bioformats/jars/loci_tools.jar) github page or in the `python-bioformats` package inside with virtualenv where you installed it (this can be tricky to locate).
