@@ -14,7 +14,7 @@ pip install -U numpy
 Then install the latest relesase of the `mytardisbf` app:
 
 ```
-pip install -e git+https://github.com/keithschulze/mytardisbf.git@0.1.1#egg=mytardisbf
+pip install -e git+https://github.com/keithschulze/mytardisbf.git@0.1.2#egg=mytardisbf
 ```
 
 or for the latest development version:
