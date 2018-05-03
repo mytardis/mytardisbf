@@ -1,7 +1,7 @@
 import json
 import unittest
-import numpy as np
 import tempfile
+import numpy as np
 
 from mytardisbf import metadata
 from scipy.ndimage import imread

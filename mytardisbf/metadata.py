@@ -80,9 +80,10 @@ def get_meta(input_file_path, output_path, **kwargs):
         omexml = bioformats.get_omexml_metadata(input_file_path)\
                     .encode('utf-8')
     except javabridge.jutil.JavaException:
-        logger.error("Unable to read OME Metadata from: %s%s"
-                     % (input_fname, ext))
+        logger.error("Unable to read OME Metadata from: %s",
+                     input_file_path)
         return
+
 
     meta_xml = et.fromstring(omexml)
     ome_ns = get_namespaces(meta_xml)
@@ -91,14 +92,14 @@ def get_meta(input_file_path, output_path, **kwargs):
         smeta = dict()
         output_file_path = os.path.join(output_path,
                                         input_fname+"_s%s.png" % i)
-        logger.debug("Generating series %s preview from image: %s"
-                     % (i, input_fname+ext))
+        logger.debug("Generating series %s preview from image: %s",
+                     i, input_file_path)
         img = previewimage.get_preview_image(input_file_path, omexml, series=i)
-        logger.debug("Saving series %s preview from image: %s"
-                     % (i, input_fname+ext))
+        logger.debug("Saving series %s preview from image: %s",
+                     i, input_file_path)
         previewimage.save_image(img, output_file_path, overwrite=True)
-        logger.debug("Extracting metadata for series %s preview from image: %s"
-                     % (i, input_fname+ext))
+        logger.debug("Extracting metadata for series %s preview from image: %s",
+                     i, input_file_path)
         smeta['id'] = img_meta.attrib['ID']
         smeta['name'] = img_meta.attrib['Name']
         smeta['previewImage'] = output_file_path
