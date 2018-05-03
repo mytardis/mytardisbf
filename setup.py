@@ -20,10 +20,10 @@ in MyTardis""",
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
-          'numpy>=1.9',
-          'scipy>=0.15',
-          'javabridge>=1.0',
-          'python-bioformats>=1.0,<1.0.7'
+          'numpy==1.14.3',
+          'scipy==1.0.1',
+          'javabridge==1.0.17',
+          'python-bioformats==1.0.5'
       ],
       entry_points="""
       # -*- Entry points: -*-
