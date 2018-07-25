@@ -80,3 +80,9 @@ sftp-config.json
 mytardisbf/tests/data/D3D.dv
 mytardisbf/tests/data/IMCD3 170615.lif
 mytardisbf/tests/data/her.tif
+
+# Mac
+.DS_Store
+
+# VSCode
+.vscode/
