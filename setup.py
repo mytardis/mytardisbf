@@ -13,7 +13,7 @@ with open('README.rst') as readme_file:
 requirements = [
     "numpy",
     "scipy",
-    "javabridge==1.0.14",
+    "javabridge==1.0.18",
     "python-bioformats"
 ]
 
