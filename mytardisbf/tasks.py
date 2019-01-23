@@ -1,15 +1,23 @@
+"""
+Tasks for extracting metadata from image files using Bioformats
+"""
 import logging
 import os
-import bioformats
-import javabridge
 import urlparse
-from bioformats import log4j
+
 from django.conf import settings
 from django.core.cache import caches
+
 from celery.task import task
+
+import bioformats
+from bioformats import log4j
+
+import javabridge
+
 from tardis.tardis_portal.models import Schema, DatafileParameterSet
 from tardis.tardis_portal.models import ParameterName, DatafileParameter
-from tardis.tardis_portal.models import DataFileObject
+from tardis.tardis_portal.models import DataFile, DataFileObject
 
 logger = logging.getLogger(__name__)
 
@@ -72,8 +80,8 @@ def check_and_start_jvm():
                                 max_heap_size=mh_size,
                                 run_headless=True)
             mtbf_jvm_started = True
-        except javabridge.JVMNotFoundError, e:
-            logger.debug(e)
+        except javabridge.JVMNotFoundError as err:
+            logger.debug(err)
 
 
 def delete_old_parameterset(ps):
@@ -84,8 +92,8 @@ def delete_old_parameterset(ps):
     ps: ParameterSet
         A ParameterSet instance to remove
     """
-    df_params = DatafileParameter.objects.get(parameterset=ps)
-    [dfp.delete() for dfp in df_params]
+    for dfp in DatafileParameter.objects.get(parameterset=ps):
+        dfp.delete()
     ps.delete()
 
 
@@ -109,6 +117,9 @@ def save_parameters(schema, param_set, params):
     None
     """
     def savep(paramk, paramv):
+        """
+        Save a parameter, given a key/value pair
+        """
         param_name = ParameterName.objects.get(schema__id=schema.id,
                                                name=paramk)
         dfp = DatafileParameter(parameterset=param_set, name=param_name)
@@ -121,15 +132,16 @@ def save_parameters(schema, param_set, params):
 
     for paramk, paramv in params.iteritems():
         if isinstance(paramv, list):
-            [savep(paramk, v) for v in paramv]
+            for value in paramv:
+                savep(paramk, value)
         else:
             savep(paramk, paramv)
 
 
 @task(name="mytardisbf.process_meta_file_output",
       ignore_result=True)
-def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
-    """Extract metadata from a Datafile using a provided function and save the
+def process_meta_file_output(df_id, schema_name, overwrite=False, **kwargs):
+    """Extract metadata from a Datafile using the get_meta function and save the
     outputs as DatafileParameters. This function differs from process_meta in
     that it generates an output directory in the metadata store and passes it
     to the metadata processing func so that outputs (e.g., preview images or
@@ -137,17 +149,8 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
 
     Parameters
     ----------
-    func: Function
-        Function to extract metadata from a file. Function must have
-        input_file_path and output_path as arguments e.g.:
-        def meta_proc(input_file_path, output_path, **kwargs):
-            ...
-        It must return a dict containing ParameterNames as keys and the
-        Parameters to be saved as values. Parameters (values) can be singular
-        strings/numerics or a list of strings/numeric. If it's a list, each
-        element will be saved as a new DatafileParameter.
-    df: tardis.tardis_portal.models.Datafile
-        Datafile instance to process.
+    df_id: int
+        ID of Datafile instance to process.
     schema_name: str
         Names of schema which describes ParameterNames
     add: Boolean (default: False)
@@ -162,7 +165,9 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
     -------
     None
     """
-    if acquire_datafile_lock(df.id):
+    from .metadata import get_meta
+
+    if acquire_datafile_lock(df_id):
         # Need to start a JVM in each thread
         check_and_start_jvm()
 
@@ -170,17 +175,19 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
             javabridge.attach()
             log4j.basic_config()
             schema = Schema.objects.get(namespace__exact=schema_name)
+            df = DataFile.objects.get(id=df_id)
             if DatafileParameterSet.objects\
                     .filter(schema=schema, datafile=df).exists():
                 if overwrite:
                     psets = DatafileParameterSet.objects.get(schema=schema,
                                                              datafile=df)
-                    logger.warning("Overwriting parametersets for %s"
-                                   % df.filename)
-                    [delete_old_parameterset(ps) for ps in psets]
+                    logger.warning("Overwriting parametersets for %s",
+                                   df.filename)
+                    for ps in psets:
+                        delete_old_parameterset(ps)
                 else:
-                    logger.warning("Parametersets for %s already exist."
-                                   % df.filename)
+                    logger.warning("Parametersets for %s already exist.",
+                                   df.filename)
                     return
 
             dfo = DataFileObject.objects.filter(datafile__id=df.id,
@@ -188,8 +195,8 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
             input_file_path = dfo.get_full_path()
 
             output_rel_path = os.path.join(
-                        os.path.dirname(urlparse.urlparse(dfo.uri).path),
-                        str(df.id))
+                os.path.dirname(urlparse.urlparse(dfo.uri).path),
+                str(df.id))
             output_path = os.path.join(
                 settings.METADATA_STORE_PATH, output_rel_path)
 
@@ -197,7 +204,7 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
                 os.makedirs(output_path)
 
             logger.debug("Processing file: %s" % input_file_path)
-            metadata_params = func(input_file_path, output_path, **kwargs)
+            metadata_params = get_meta(input_file_path, output_path, **kwargs)
             if not metadata_params:
                 logger.debug("No metadata to save")
                 return
@@ -206,34 +213,25 @@ def process_meta_file_output(func, df, schema_name, overwrite=False, **kwargs):
                 ps = DatafileParameterSet(schema=schema, datafile=df)
                 ps.save()
 
-                logger.debug("Saving parameters for: %s" % input_file_path)
+                logger.debug("Saving parameters for: %s", input_file_path)
                 save_parameters(schema, ps, sm)
-        except Exception, e:
-            logger.debug(e)
+        except Exception as err:
+            logger.error(err)
         finally:
-            release_datafile_lock(df.id)
+            release_datafile_lock(df_id)
             javabridge.detach()
 
 
 @task(name="mytardisbf.process_meta",
       ignore_result=True)
-def process_meta(func, df, schema_name, overwrite=False, **kwargs):
-    """Extract metadata from a Datafile using a provided function and save the
+def process_meta(df_id, schema_name, overwrite=False, **kwargs):
+    """Extract metadata from a Datafile using the get_meta function and save the
     outputs as DatafileParameters.
 
     Parameters
     ----------
-    func: Function
-        Function to extract metadata from a file. Function must have
-        input_file_path as an argument e.g.:
-        def meta_proc(input_file_path, **kwargs):
-            ...
-        It must return a dict containing ParameterNames as keys and the
-        Parameters to be saved as values. Parameters (values) can be singular
-        strings/numerics or a list of strings/numeric. If it's a list, each
-        element will be saved as a new DatafileParameter.
-    df: tardis.tardis_portal.models.Datafile
-        Datafile instance to process.
+    df_id: int
+        ID of Datafile instance to process.
     schema_name: str
         Names of schema which describes ParameterNames
     add: boolean (default: False)
@@ -248,7 +246,9 @@ def process_meta(func, df, schema_name, overwrite=False, **kwargs):
     -------
     None
     """
-    if acquire_datafile_lock(df.id):
+    from .metadata import get_meta
+
+    if acquire_datafile_lock(df_id):
         # Need to start a JVM in each thread
         check_and_start_jvm()
 
@@ -256,25 +256,27 @@ def process_meta(func, df, schema_name, overwrite=False, **kwargs):
             javabridge.attach()
             log4j.basic_config()
             schema = Schema.objects.get(namespace__exact=schema_name)
+            df = DataFile.objects.get(id=df_id)
             if DatafileParameterSet.objects\
                     .filter(schema=schema, datafile=df).exists():
                 if overwrite:
                     psets = DatafileParameterSet.objects.get(schema=schema,
                                                              datafile=df)
-                    logger.warning("Overwriting parametersets for %s"
-                                   % df.filename)
-                    [delete_old_parameterset(ps) for ps in psets]
+                    logger.warning("Overwriting parametersets for %s",
+                                   df.filename)
+                    for ps in psets:
+                        delete_old_parameterset(ps)
                 else:
-                    logger.warning("Parametersets for %s already exist."
-                                   % df.filename)
+                    logger.warning("Parametersets for %s already exist.",
+                                   df.filename)
                     return
 
             dfo = DataFileObject.objects.filter(datafile__id=df.id,
                                                 verified=True).first()
             input_file_path = dfo.get_full_path()
 
-            logger.debug("Processing file: %s" % input_file_path)
-            metadata_params = func(input_file_path, **kwargs)
+            logger.debug("Processing file: %s", input_file_path)
+            metadata_params = get_meta(input_file_path, **kwargs)
 
             if not metadata_params:
                 logger.debug("No metadata to save")
@@ -284,10 +286,10 @@ def process_meta(func, df, schema_name, overwrite=False, **kwargs):
                 ps = DatafileParameterSet(schema=schema, datafile=df)
                 ps.save()
 
-                logger.debug("Saving parameters for: %s" % input_file_path)
+                logger.debug("Saving parameters for: %s", input_file_path)
                 save_parameters(schema, ps, sm)
-        except Exception, e:
-            logger.debug(e)
+        except Exception as err:
+            logger.error(err)
         finally:
-            release_datafile_lock(df.id)
+            release_datafile_lock(df_id)
             javabridge.detach()

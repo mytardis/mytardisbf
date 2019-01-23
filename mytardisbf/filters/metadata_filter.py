@@ -1,5 +1,9 @@
-from mytardisbf import metadata, tasks
+"""
+MyTardis filter class for extracting metadata from image files using Bioformats
+"""
 from django.conf import settings
+
+from mytardisbf import tasks
 
 
 class MetadataFilter(object):
@@ -32,8 +36,7 @@ class MetadataFilter(object):
         instance = kwargs.get('instance')
         bfqueue = getattr(settings, 'BIOFORMATS_QUEUE', 'celery')
         tasks.process_meta_file_output\
-            .apply_async(args=[metadata.get_meta, instance, self.schema,
-                               False], queue=bfqueue)
+            .apply_async(args=[instance.id, self.schema, False], queue=bfqueue)
 
 
 def make_filter(name, schema):
