@@ -216,7 +216,7 @@ def process_meta_file_output(df_id, schema_name, overwrite=False, **kwargs):
                 logger.debug("Saving parameters for: %s", input_file_path)
                 save_parameters(schema, ps, sm)
         except Exception as err:
-            logger.error(err)
+            logger.exception(err)
         finally:
             release_datafile_lock(df_id)
             javabridge.detach()
@@ -289,7 +289,7 @@ def process_meta(df_id, schema_name, overwrite=False, **kwargs):
                 logger.debug("Saving parameters for: %s", input_file_path)
                 save_parameters(schema, ps, sm)
         except Exception as err:
-            logger.error(err)
+            logger.exception(err)
         finally:
             release_datafile_lock(df_id)
             javabridge.detach()
