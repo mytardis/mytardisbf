@@ -80,7 +80,7 @@ def get_meta(input_file_path, output_path, **kwargs):
         omexml = bioformats.get_omexml_metadata(input_file_path)\
                     .encode('utf-8')
     except javabridge.jutil.JavaException:
-        logger.error("Unable to read OME Metadata from: %s",
+        logger.exception("Unable to read OME Metadata from: %s",
                      input_file_path)
         return
 
